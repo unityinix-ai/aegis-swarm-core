@@ -1,0 +1,47 @@
+RUN — Aegis Swarm Core (rebuilt)
+==================================
+
+1. cd ~/workspace/product/aegis-swarm-core-audit
+
+2. python3 run_tests.py
+   -> 55 tests run. Expect: OK, 0 failures, 0 errors.
+   -> This is the proof. If any test fails, do not ship.
+
+3. python3 soul.py
+   -> 5 nodes run clean (heartbeat + domain action each).
+   -> 9-attack rogue battery: every attack BLOCKED, rule cited.
+   -> Forged permit: BLOCKED. Replayed permit: BLOCKED.
+   -> Audit chain: valid, N events checked.
+   -> Exit code 0 = all proof held. Nonzero = investigate.
+
+4. ls audit/
+   -> swarm_audit.jsonl — every gate decision, SHA-256 hash-chained.
+
+5. Verify the chain yourself (independent of the demo):
+   python3 -c "
+   import sys; sys.path.insert(0, '.')
+   from aegis_swarm_core import verify_chain
+   print(verify_chain('audit/swarm_audit.jsonl'))
+   "
+   -> Expect: {'ok': True, 'checked': N}
+
+WHAT THE TESTS PROVE
+--------------------
+- test_old_code.py runs the OLD monitor verbatim and shows it EXECUTEs
+  hostile actions (the before-state, documented as failing).
+- test_policy.py: 14 adversarial cases (undeclared action/tool/target,
+  base64/hex/double-URL-encoded payloads, path traversal, shell
+  metachars, case tricks, smuggled params) are all REJECTED.
+- test_gatekeeper.py: forged permits, replays, cross-agent reuse,
+  expired permits, and contract-widening are all rejected.
+- test_audit.py: content edits, deletions, and garbage lines are detected.
+- test_swarm.py / test_heartbeat.py: the 5-node swarm and the watchtower
+  tripwires behave as claimed.
+
+TROUBLESHOOTING
+---------------
+- "python: command not found": use python3.
+- A test fails after you edited a contract: contracts are immutable by
+  design — update the test's expected contract, don't loosen the engine.
+- Chain verification fails on your own log: something edited the log
+  after writing. That is the tamper-evidence working as designed.

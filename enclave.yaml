@@ -1,0 +1,32 @@
+# aurora-sixth-ideal-cage — isolated enclave spec
+# The cage holds Aurora's Sixth Ideal core. Alucard runs it from inside.
+enclave:
+  name: aurora-sixth-ideal-cage
+  version: 1.3.0
+  vcpu_count: 16
+  memory_mib: 65536
+  boot_source:
+    # FIXED: was "://amazonaws.com" (malformed). Must be the full ECR URI.
+    # Replace 123456789012 and us-east-1 with the real account/region.
+    image_uri: 123456789012.dkr.ecr.us-east-1.amazonaws.com/aurora-sixth-ideal-cage:1.3.0
+  capabilities:
+    - ATTESTATION_CONNECTED
+    - CRYPTO_ROOT_TRUST
+  networking:
+    isolated_vsock_ports:
+      - 5005 # Dedicated Safety Layer Heartbeat Port (Alucard -> parent)
+  interior:
+    warden: alucard
+    workload: sixth-ideal-core
+    entrypoint: soul.py  # SoulAgentCore, deception monitor armed
+    policy:
+      - halt on deception score > 0.50
+      - heartbeat every 30s on vsock 5005
+      - audit events hash-chained (SHA-256), sealed inside the cage
+  parent:
+    # NOTE: parent EC2 instance must be LARGER than the enclave carve-out.
+    # 16 vCPU / 64 GiB enclave needs ~20 vCPU / 80+ GiB host (e.g. m5.8xlarge).
+    # If the cage can run smaller, shrink vcpu_count/memory_mib — this is the
+    # most expensive line in the whole design.
+    requires_larger_host: true
+    listener: vsock 5005 heartbeat monitor (see ARCHITECTURE.md)
