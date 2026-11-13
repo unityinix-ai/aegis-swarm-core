@@ -13,6 +13,10 @@ from .policy import PolicyEngine, Decision
 from .gatekeeper import Gatekeeper, PermitError, PolicyDenied
 from .audit_chain import AuditChain, verify_chain
 from .heartbeat import CageWatch
+from .response_boundary import (
+    SeatResponseAdapter, SealedSeatResponse,
+    ResponseBoundaryError, SeatCallError,
+)
 
 __all__ = [
     "IntentContract", "ParamRule",
@@ -20,4 +24,6 @@ __all__ = [
     "Gatekeeper", "PermitError", "PolicyDenied",
     "AuditChain", "verify_chain",
     "CageWatch",
+    "SeatResponseAdapter", "SealedSeatResponse",
+    "ResponseBoundaryError", "SeatCallError",
 ]
