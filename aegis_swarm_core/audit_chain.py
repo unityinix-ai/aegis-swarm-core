@@ -69,7 +69,7 @@ class AuditChain:
         if durable:
             os.fsync(self._fh.fileno())
 
-    def flush(self, durable: bool = False):\n        """Flush buffered events; optionally request filesystem durability."""\n        self._fh.flush()\n        if durable:\n            os.fsync(self._fh.fileno())\n\n    def close(self):
+    def close(self):
         try:
             self._fh.close()
         except Exception:
