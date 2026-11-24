@@ -60,8 +60,14 @@ class AuditChain:
         self.prev_hash = event["hash"]
         self.event_count += 1
         self._fh.write(_canonical(event) + "\n")
-        self._fh.flush()
+        self.flush(durable=False)
         return event
+
+    def flush(self, durable: bool = False):
+        """Flush buffered events; optionally request filesystem durability."""
+        self._fh.flush()
+        if durable:
+            os.fsync(self._fh.fileno())
 
     def close(self):
         try:
